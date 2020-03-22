@@ -2,19 +2,17 @@ package com.dashboard.aop;
 
 import com.dashboard.modal.UserDetails;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -28,35 +26,41 @@ public class Procucer_AOP {
 
     public Procucer_AOP() {
     }
-    @Before("@annotation(com.dashboard.aop.PROD)")
+
+    @After("@annotation(com.dashboard.aop.PROD)")
     public void sendUserActivity(JoinPoint joinPoint) throws Throwable {
-        System.out.println("before method execution");
-    }
-    public static void main(String[] args) {
         final Logger logger = LoggerFactory.getLogger(Producer_AOP.class);
-        //Logger logger = LoggerFactory.getLogger(Consumer.class);
         String groupId = "FirstApplication";
         String topic = "userDetails";
         Properties properties = new Properties();
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
         //----------> Create kafka
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(properties);
-        consumer.subscribe(Arrays.asList(topic));
-        while (true) {
-            ConsumerRecords<String, String> records =
-                    consumer.poll(Duration.ofMillis(100));
-            for (ConsumerRecord<String, String> record : records) {
-                logger.info("Key___:" + record.key() + "\n");
-                logger.info("Value___:" + record.value() + "\n");
-                logger.info("Topic___:" + record.topic() + "\n");
-                logger.info("Offset___:" + record.offset() + "\n");
-
+        Object[] objects = joinPoint.getArgs();
+        UserDetails user  = (UserDetails)objects[0];
+        KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
+        //----------> Create  Producer record
+       ProducerRecord<String,String > record =
+                new ProducerRecord("userDetails", user.toString());
+        //----------> Send data
+        producer.send(record, (recordMetadata, e) -> {
+            if (e == null){
+                logger.info("Received new metadata. \n");
+                logger.info( "1-Topic____:"+ recordMetadata.topic()+"\n");
+                logger.info("2- Offset____:"+ recordMetadata.offset() +"\n");
+                logger.info( "3- TimeStamp____:"+ recordMetadata.timestamp() +"\n");
+                logger.info("4- Partition____:"+ recordMetadata.partition()+"\n");
+            } else {
+                logger.error("Error while Producing data ",e);
             }
-        }
-    }}
+        });
+        producer.flush();
+        producer.close();
+    }
+    public static void main(String[] args) {
+
+    }
+}
 
 

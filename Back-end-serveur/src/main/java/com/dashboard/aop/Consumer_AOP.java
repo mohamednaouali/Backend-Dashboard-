@@ -28,9 +28,6 @@ public class Consumer_AOP {
     }
     @Before("@annotation(com.dashboard.aop.CONS)")
     public void sendUserActivity(JoinPoint joinPoint) throws Throwable {
-        System.out.println("before method execution");
-    }
-    public static void main(String[] args) {
         java.lang.String groupId = "FirstApplication";
         java.lang.String topic = "userDetails";
         Properties prop = new Properties();
@@ -42,17 +39,21 @@ public class Consumer_AOP {
         //----------> Create kafka
         KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(prop);
         consumer.subscribe(Arrays.asList(topic));
-        while (true) {
+       // while (true) {
             ConsumerRecords<String, String> records =
                     consumer.poll(Duration.ofMillis(100));
             for (ConsumerRecord<String, String> record : records) {
                 logger.info("Key___:" + record.key() + "\n");
                 logger.info("Value___:" + record.value() + "\n");
+                System.out.println( "value : " + record.value());
                 logger.info("Topic___:" + record.topic() + "\n");
                 logger.info("Offset___:" + record.offset() + "\n");
-
             }
+        System.out.println("before method execution");
         }
+   //
+    public static void main(String[] args) {
+
     }
 }
 

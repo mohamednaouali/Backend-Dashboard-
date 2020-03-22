@@ -1,9 +1,12 @@
 package com.dashboard.controller;
 
 import com.dashboard.aop.CONS;
+import com.dashboard.aop.PROD;
+import com.dashboard.modal.UserDetails;
 import com.netflix.appinfo.ApplicationInfoManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,10 +22,19 @@ public class BackEndController {
     @RequestMapping(value = "/info", method = RequestMethod.GET)
     @CONS
     public String info() {
-       // return ("**** __Response From this Service__ ***");
-
         return "welcome " + String.valueOf(ApplicationInfoManager.getInstance().getInfo().getPort()) + "  has responded";
     }
+    @RequestMapping(value = "/produce", method = RequestMethod.POST)
+    @PROD
+    public void producer(@RequestBody UserDetails userDetails){
+        String country= userDetails.getCountry();
+
+
+
+
+    }
+
+
 
 
 }

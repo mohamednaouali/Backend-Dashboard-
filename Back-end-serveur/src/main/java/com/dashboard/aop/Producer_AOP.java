@@ -30,9 +30,9 @@ public class Producer_AOP {
         producer.send(record, (recordMetadata, e) -> {
             if (e == null){
                 logger.info("Received new metadata. \n");
-                logger.info( "1-Topic____:"+ recordMetadata.topic()+"\n");
+                logger.info("1-Topic____:"+ recordMetadata.topic()+"\n");
                 logger.info("2- Offset____:"+ recordMetadata.offset() +"\n");
-                logger.info( "3- TimeStamp____:"+ recordMetadata.timestamp() +"\n");
+                logger.info("3- TimeStamp____:"+ recordMetadata.timestamp() +"\n");
                 logger.info("4- Partition____:"+ recordMetadata.partition()+"\n");
             } else {
                 logger.error("Error while Producing data ",e);
